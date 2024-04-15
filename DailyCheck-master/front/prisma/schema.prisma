@@ -1,0 +1,59 @@
+// Prisma Client를 기반으로 생성되어야 하는 클라이언트를 지정합니다.
+generator client {
+  provider = "prisma-client-js"
+}
+// Prisma가 연결해야하는 데이터 소스의 세부 정보를 지정합니다.
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id            String    @id @default(uuid())
+  name          String?
+  password      String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  role          Role      @default(USER)
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model Account {
+  id                       String  @id @default(uuid())
+  type                     String
+  provider                 String
+  providerAccountId        String
+  userId                   String
+  user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refresh_token            String?
+  refresh_token_expires_in Int?
+  access_token             String?
+  expires_in               Int?
+  expires_at               Int?
+  token_type               String?
+  scope                    String?
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  expires      DateTime
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Prisma Migrate
+// Migrate 과정을 통해 MySQL에 실제 DB의 테이블을 생성할 수 있다.
+// npx prisma migrate dev
+
+// Prisma는 GUI 방식으로 DB 값을 보여주고 수정, 삭제까지 할 수 있게 제공해 줍니다.
+// 터미널 창을 하나 열어서 아래와 같이 실행해 봅시다.
+// npx prisma studio
